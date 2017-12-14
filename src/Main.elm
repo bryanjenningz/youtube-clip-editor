@@ -29,8 +29,8 @@ init =
 type Msg
     = NoOp
     | SetText String
-    | SetStartTime
-    | SetEndTime
+    | SetStartTime Float
+    | SetEndTime Float
     | SetCurrentTime Float
     | PlayClip
 
@@ -44,11 +44,11 @@ update msg model =
         SetText text ->
             ( { model | text = text }, Cmd.none )
 
-        SetStartTime ->
-            ( { model | startTime = model.currentTime }, Cmd.none )
+        SetStartTime time ->
+            ( { model | startTime = time }, Cmd.none )
 
-        SetEndTime ->
-            ( { model | endTime = model.currentTime }, Cmd.none )
+        SetEndTime time ->
+            ( { model | endTime = time }, Cmd.none )
 
         SetCurrentTime currentTime ->
             ( { model | currentTime = roundTenths currentTime }, Cmd.none )
@@ -73,8 +73,8 @@ view model =
         , div [] [ text <| "Start: " ++ toString model.startTime ]
         , div [] [ text <| "End: " ++ toString model.endTime ]
         , input [ placeholder "Clip text", onInput SetText ] []
-        , button [ onClick SetStartTime ] [ text "Set Start Time" ]
-        , button [ onClick SetEndTime ] [ text "Set End Time" ]
+        , button [ onClick <| SetStartTime model.currentTime ] [ text "Set Start Time" ]
+        , button [ onClick <| SetEndTime model.currentTime ] [ text "Set End Time" ]
         ]
 
 
