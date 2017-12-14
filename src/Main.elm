@@ -3,6 +3,7 @@ port module Main exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Time
 
 
 ---- MODEL ----
@@ -13,13 +14,13 @@ type alias Model =
     , startTime : Float
     , endTime : Float
     , currentTime : Float
-    , playingClip : Bool
+    , clipPlaying : Bool
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { text = "", startTime = 0, endTime = 0, currentTime = 0, playingClip = False }, Cmd.none )
+    ( { text = "", startTime = 0, endTime = 0, currentTime = 0, clipPlaying = False }, Cmd.none )
 
 
 
@@ -32,7 +33,8 @@ type Msg
     | SetStartTime Float
     | SetEndTime Float
     | SetCurrentTime Float
-    | PlayClip
+    | PlayClip Float
+    | PauseClip
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,8 +55,11 @@ update msg model =
         SetCurrentTime currentTime ->
             ( { model | currentTime = roundTenths currentTime }, Cmd.none )
 
-        PlayClip ->
-            ( model, Cmd.none )
+        PlayClip time ->
+            ( { model | clipPlaying = True }, playVideo time )
+
+        PauseClip ->
+            ( { model | clipPlaying = False }, pauseVideo () )
 
 
 roundTenths : Float -> Float
@@ -75,6 +80,16 @@ view model =
         , input [ placeholder "Clip text", onInput SetText ] []
         , button [ onClick <| SetStartTime model.currentTime ] [ text "Set Start Time" ]
         , button [ onClick <| SetEndTime model.currentTime ] [ text "Set End Time" ]
+        , div []
+            [ button [ onClick <| PlayClip model.startTime ]
+                [ text
+                    (if model.clipPlaying then
+                        "Pause Clip"
+                     else
+                        "Play Clip"
+                    )
+                ]
+            ]
         ]
 
 
@@ -84,7 +99,21 @@ view model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    getCurrentTime SetCurrentTime
+    if model.clipPlaying then
+        Sub.batch
+            [ getCurrentTime SetCurrentTime
+            , Time.every (Time.millisecond * 50) (always (monitorClip model.currentTime model.endTime))
+            ]
+    else
+        getCurrentTime SetCurrentTime
+
+
+monitorClip : Float -> Float -> Msg
+monitorClip currentTime endTime =
+    if currentTime >= endTime then
+        PauseClip
+    else
+        NoOp
 
 
 
@@ -92,6 +121,12 @@ subscriptions model =
 
 
 port getCurrentTime : (Float -> msg) -> Sub msg
+
+
+port playVideo : Float -> Cmd msg
+
+
+port pauseVideo : () -> Cmd msg
 
 
 
