@@ -25,14 +25,14 @@ type alias Clip =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : List Clip -> ( Model, Cmd Msg )
+init clips =
     ( { text = ""
       , startTime = 0
       , endTime = 0
       , currentTime = 0
       , clipPlaying = False
-      , clips = []
+      , clips = clips
       }
     , Cmd.none
     )
@@ -90,14 +90,14 @@ update msg model =
                     (newClip :: model.clips)
                         |> List.sortBy .start
             in
-            ( { model | clips = newClips }, Cmd.none )
+            ( { model | clips = newClips }, saveClips newClips )
 
         DeleteClip index ->
             let
                 newClips =
                     List.take index model.clips ++ List.drop (index + 1) model.clips
             in
-            ( { model | clips = newClips }, Cmd.none )
+            ( { model | clips = newClips }, saveClips newClips )
 
 
 roundTenths : Float -> Float
@@ -174,13 +174,16 @@ port playVideo : Float -> Cmd msg
 port pauseVideo : () -> Cmd msg
 
 
+port saveClips : List Clip -> Cmd msg
+
+
 
 ---- PROGRAM ----
 
 
-main : Program Never Model Msg
+main : Program (List Clip) Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { view = view
         , init = init
         , update = update

@@ -11,7 +11,7 @@
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    <title>Elm App</title>
+    <title>YouTube Clip Editor</title>
 </head>
 <body>
     <noscript>
@@ -22,7 +22,6 @@
 
     <script>
         var tag = document.createElement('script');
-
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
