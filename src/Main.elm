@@ -51,6 +51,7 @@ type Msg
     | PlayClip Float
     | PauseClip
     | SaveClip
+    | DeleteClip Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -81,7 +82,22 @@ update msg model =
             ( { model | clipPlaying = True, currentTime = model.startTime }, playVideo time )
 
         SaveClip ->
-            ( { model | clips = { start = model.startTime, end = model.endTime, text = model.text } :: model.clips }, Cmd.none )
+            let
+                newClip =
+                    { start = model.startTime, end = model.endTime, text = model.text }
+
+                newClips =
+                    (newClip :: model.clips)
+                        |> List.sortBy .start
+            in
+            ( { model | clips = newClips }, Cmd.none )
+
+        DeleteClip index ->
+            let
+                newClips =
+                    List.take index model.clips ++ List.drop (index + 1) model.clips
+            in
+            ( { model | clips = newClips }, Cmd.none )
 
 
 roundTenths : Float -> Float
@@ -117,6 +133,22 @@ view model =
             ]
         , div []
             [ button [ onClick SaveClip ] [ text "Save Clip" ] ]
+        , div [] (List.indexedMap viewClip model.clips)
+        ]
+
+
+viewClip : Int -> Clip -> Html Msg
+viewClip index clip =
+    div []
+        [ text <|
+            "Start: "
+                ++ toString clip.start
+                ++ " "
+                ++ "End: "
+                ++ toString clip.end
+                ++ " Text: "
+                ++ clip.text
+        , button [ onClick (DeleteClip index) ] [ text "x" ]
         ]
 
 
