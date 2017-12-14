@@ -53,10 +53,10 @@ update msg model =
             ( { model | text = text }, Cmd.none )
 
         SetStartTime time ->
-            ( { model | startTime = time }, Cmd.none )
+            ( { model | startTime = roundTenths time }, Cmd.none )
 
         SetEndTime time ->
-            ( { model | endTime = time }, Cmd.none )
+            ( { model | endTime = roundTenths time }, Cmd.none )
 
         SetCurrentTime currentTime ->
             if model.clipPlaying && model.currentTime >= model.endTime then
@@ -87,8 +87,16 @@ view model =
         , div [] [ text <| "Start: " ++ toString model.startTime ]
         , div [] [ text <| "End: " ++ toString model.endTime ]
         , input [ placeholder "Clip text", onInput SetText ] []
-        , button [ onClick <| SetStartTime model.currentTime ] [ text "Set Start Time" ]
-        , button [ onClick <| SetEndTime model.currentTime ] [ text "Set End Time" ]
+        , div []
+            [ button [ onClick <| SetStartTime model.currentTime ] [ text "Set Start Time" ]
+            , button [ onClick <| SetStartTime (model.startTime - 0.1) ] [ text "<" ]
+            , button [ onClick <| SetStartTime (model.startTime + 0.1) ] [ text ">" ]
+            ]
+        , div []
+            [ button [ onClick <| SetEndTime model.currentTime ] [ text "Set End Time" ]
+            , button [ onClick <| SetEndTime (model.endTime - 0.1) ] [ text "<" ]
+            , button [ onClick <| SetEndTime (model.endTime + 0.1) ] [ text ">" ]
+            ]
         , div []
             [ button
                 [ onClick <| PlayClip model.startTime ]
