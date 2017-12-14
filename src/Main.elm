@@ -14,6 +14,14 @@ type alias Model =
     , endTime : Float
     , currentTime : Float
     , clipPlaying : Bool
+    , clips : List Clip
+    }
+
+
+type alias Clip =
+    { text : String
+    , start : Float
+    , end : Float
     }
 
 
@@ -24,6 +32,7 @@ init =
       , endTime = 0
       , currentTime = 0
       , clipPlaying = False
+      , clips = []
       }
     , Cmd.none
     )
@@ -41,6 +50,7 @@ type Msg
     | SetCurrentTime Float
     | PlayClip Float
     | PauseClip
+    | SaveClip
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -69,6 +79,9 @@ update msg model =
 
         PlayClip time ->
             ( { model | clipPlaying = True, currentTime = model.startTime }, playVideo time )
+
+        SaveClip ->
+            ( { model | clips = { start = model.startTime, end = model.endTime, text = model.text } :: model.clips }, Cmd.none )
 
 
 roundTenths : Float -> Float
@@ -102,6 +115,8 @@ view model =
                 [ onClick <| PlayClip model.startTime ]
                 [ text "Play Clip" ]
             ]
+        , div []
+            [ button [ onClick SaveClip ] [ text "Save Clip" ] ]
         ]
 
 
