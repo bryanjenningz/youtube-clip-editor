@@ -134,7 +134,7 @@ view model =
         , div []
             [ button [ onClick SaveClip ] [ text "Save Clip" ] ]
         , textarea
-            [ value (String.join "," (List.map clipToString model.clips)) ]
+            [ value <| "[" ++ String.join "," (List.map clipToString model.clips) ++ "]" ]
             []
         , div [] (List.indexedMap viewClip model.clips)
         ]
@@ -143,7 +143,7 @@ view model =
 clipToString : Clip -> String
 clipToString clip =
     """{"text":"""
-        ++ clip.text
+        ++ toString clip.text
         ++ ","
         ++ """"start":"""
         ++ toString clip.start
