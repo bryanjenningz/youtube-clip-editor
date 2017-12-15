@@ -133,8 +133,24 @@ view model =
             ]
         , div []
             [ button [ onClick SaveClip ] [ text "Save Clip" ] ]
+        , textarea
+            [ value (String.join "," (List.map clipToString model.clips)) ]
+            []
         , div [] (List.indexedMap viewClip model.clips)
         ]
+
+
+clipToString : Clip -> String
+clipToString clip =
+    """{"text":"""
+        ++ clip.text
+        ++ ","
+        ++ """"start":"""
+        ++ toString clip.start
+        ++ ","
+        ++ """"end":"""
+        ++ toString clip.end
+        ++ "}"
 
 
 viewClip : Int -> Clip -> Html Msg
