@@ -13,7 +13,7 @@ type alias Model =
     , startTime : Float
     , endTime : Float
     , currentTime : Float
-    , clipPlaying : Bool
+    , clipPlaying : Maybe Clip
     , clips : List Clip
     }
 
@@ -31,7 +31,7 @@ init clips =
       , startTime = 0
       , endTime = 0
       , currentTime = 0
-      , clipPlaying = False
+      , clipPlaying = Nothing
       , clips = clips
       }
     , Cmd.none
@@ -48,7 +48,7 @@ type Msg
     | SetStartTime Float
     | SetEndTime Float
     | SetCurrentTime Float
-    | PlayClip Float
+    | PlayClip Clip
     | PauseClip
     | SaveClip
     | DeleteClip Int
@@ -70,16 +70,21 @@ update msg model =
             ( { model | endTime = roundTenths time }, Cmd.none )
 
         SetCurrentTime currentTime ->
-            if model.clipPlaying && model.currentTime >= model.endTime then
-                ( { model | currentTime = roundTenths currentTime, clipPlaying = False }, pauseVideo () )
-            else
-                ( { model | currentTime = roundTenths currentTime }, Cmd.none )
+            case model.clipPlaying of
+                Just { end } ->
+                    if model.currentTime >= end then
+                        ( { model | currentTime = roundTenths currentTime, clipPlaying = Nothing }, pauseVideo () )
+                    else
+                        ( { model | currentTime = roundTenths currentTime }, Cmd.none )
+
+                Nothing ->
+                    ( { model | currentTime = roundTenths currentTime }, Cmd.none )
 
         PauseClip ->
-            ( { model | clipPlaying = False }, pauseVideo () )
+            ( { model | clipPlaying = Nothing }, pauseVideo () )
 
-        PlayClip time ->
-            ( { model | clipPlaying = True, currentTime = model.startTime }, playVideo time )
+        PlayClip clip ->
+            ( { model | clipPlaying = Just clip, currentTime = clip.start }, playVideo clip.start )
 
         SaveClip ->
             let
@@ -128,7 +133,13 @@ view model =
             ]
         , div []
             [ button
-                [ onClick <| PlayClip model.startTime ]
+                [ onClick <|
+                    PlayClip
+                        { start = model.startTime
+                        , end = model.endTime
+                        , text = model.text
+                        }
+                ]
                 [ text "Play Clip" ]
             ]
         , div []
@@ -156,7 +167,8 @@ clipToString clip =
 viewClip : Int -> Clip -> Html Msg
 viewClip index clip =
     div []
-        [ text <|
+        [ button [ onClick (PlayClip clip) ] [ text "Play" ]
+        , text <|
             "Start: "
                 ++ toString clip.start
                 ++ " "
